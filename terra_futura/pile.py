@@ -12,8 +12,10 @@ class InterfaceShuffler(ABC):
 
 
 class RandomShuffler(InterfaceShuffler):
-    def __init__(self) -> None:
-        self.rng = random.Random(int(time.time()))
+    def __init__(self, seed:Optional[int] = None) -> None:
+        if not seed:
+            seed = int(time.time())
+        self.rng = random.Random(seed)
     
     def shuffle(self, deck: list[InterfaceCard]) -> list[InterfaceCard]:
         deck_copy = deck.copy()
@@ -32,7 +34,7 @@ class Pile:
         self._fill_visible()
 
     def _restore_hidden(self) -> None:
-        self.hidden_cards = self.shuffler.shuffle(self.discarded_cards)
+        self.hidden_cards.extend(self.shuffler.shuffle(self.discarded_cards))
         self.discarded_cards.clear()
 
     def _fill_visible(self) -> None:
