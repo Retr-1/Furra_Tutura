@@ -51,7 +51,6 @@ class Grid(InterfaceGrid):
             raise ValueError("Cannot put card on this position")
 
         self._cells[coordinate] = card
-        return True
 
     def canBeActivated(self, coordinate: GridPosition) -> bool:
         """

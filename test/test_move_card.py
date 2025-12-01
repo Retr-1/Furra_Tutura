@@ -66,8 +66,8 @@ class GridFake(InterfaceGrid):
         return True
 
  #used
-    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> bool:
-        return True
+    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> None:
+        ...
 
 # not used
     def canBeActivated(self, coordinate: GridPosition)-> bool:
@@ -97,8 +97,8 @@ class GridCannotPutCardFake(InterfaceGrid):
         return True
 
  #used
-    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> bool:
-        return False
+    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> None:
+        raise AssertionError('Cannot put')
 
 # not used
     def canBeActivated(self, coordinate: GridPosition)-> bool:

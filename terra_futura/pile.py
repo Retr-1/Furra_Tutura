@@ -2,16 +2,17 @@ from abc import ABC, abstractmethod
 from .interfaces import InterfaceCard
 import random
 import time
-from typing import Optional
+from typing import Optional, List
+from collections.abc import Sequence
 
 class InterfaceShuffler(ABC):
     @abstractmethod
-    def shuffle(deck: list[InterfaceCard]) -> list[InterfaceCard]:
+    def shuffle(self, deck: list[InterfaceCard]) -> list[InterfaceCard]:
         pass
 
 
 class RandomShuffler(InterfaceShuffler):
-    def __init__(self):
+    def __init__(self) -> None:
         self.rng = random.Random(int(time.time()))
     
     def shuffle(self, deck: list[InterfaceCard]) -> list[InterfaceCard]:
@@ -21,13 +22,13 @@ class RandomShuffler(InterfaceShuffler):
 
 
 class Pile:
-    def __init__(self, visible_cards: list[InterfaceCard], hidden_cards: list[InterfaceCard], shuffler: Optional['InterfaceShuffler'] = None):
+    def __init__(self, visible_cards: Sequence[InterfaceCard], hidden_cards: Sequence[InterfaceCard], shuffler: Optional['InterfaceShuffler'] = None):
         if not shuffler:
             shuffler = RandomShuffler()
         self.shuffler = shuffler
-        self.visible_cards = visible_cards
-        self.hidden_cards = hidden_cards
-        self.discarded_cards = []
+        self.visible_cards: List[InterfaceCard] = list(visible_cards)
+        self.hidden_cards: List[InterfaceCard] = list(hidden_cards)
+        self.discarded_cards: List[InterfaceCard] = []
         self._fill_visible()
 
     def _restore_hidden(self) -> None:

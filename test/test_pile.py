@@ -1,7 +1,8 @@
 import pytest
 
 from terra_futura.pile import Pile, InterfaceShuffler
-from terra_futura.interfaces import InterfaceCard
+from terra_futura.interfaces import InterfaceCard, Resource
+from typing import List
 
 class FakeCard(InterfaceCard):
     """Simple stand-in for InterfaceCard."""
@@ -14,6 +15,40 @@ class FakeCard(InterfaceCard):
 
     def __repr__(self) -> str:
         return f"FakeCard({self.name})"
+    
+
+    # --- Interface methods ---
+    def isActive(self) -> bool:
+        return True
+
+    def canPutResources(self, resources: List[Resource]) -> bool:
+        return True
+
+    def putResources(self, resources: List[Resource]) -> None:
+        pass
+
+    def canGetResources(self, resources: List[Resource]) -> bool:
+        return True
+
+    def getResources(self, resources: List[Resource]) -> None:
+        pass
+
+    def canPlacePollution(self, amount: int = 1) -> bool:
+        """Return True if placing `amount` pollution on this card is legal."""
+        return True
+
+    def placePollution(self, amount: int = 1) -> None:
+        """Place `amount` pollution cubes on this card."""
+        pass
+
+    def check(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
+        return True
+
+    def checkLower(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
+        return True
+
+    def hasAssistance(self) -> bool:
+        return True
 
 
 class FakeShuffler(InterfaceShuffler):
@@ -24,9 +59,9 @@ class FakeShuffler(InterfaceShuffler):
     """
 
     def __init__(self) -> None:
-        self.calls: list[list[FakeCard]] = []
+        self.calls: list[list[InterfaceCard]] = []
 
-    def shuffle(self, deck: list[FakeCard]) -> list[FakeCard]:
+    def shuffle(self, deck: list[InterfaceCard]) -> list[InterfaceCard]:
         # record the exact deck Pile asked us to shuffle
         self.calls.append(list(deck))
         # return a copy, same order
@@ -62,8 +97,10 @@ def test_getCard_returns_card_for_valid_index_and_none_out_of_range() -> None:
     pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
 
     # valid indices
-    assert pile.getCard(1).state() == "a"
-    assert pile.getCard(4).state() == "d"
+    x = pile.getCard(1)
+    assert x and x.state() == "a"
+    y = pile.getCard(4)
+    assert y and y.state() == "d"
 
     # out of range indices
     assert pile.getCard(0) is None

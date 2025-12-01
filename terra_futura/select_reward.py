@@ -67,7 +67,6 @@ class SelectReward:
 
         self.selection = [resource]
         self._state = RewardState.SELECTED
-        return True
 
     # ------------------------------------------------------------------ #
     # State                                                               #
