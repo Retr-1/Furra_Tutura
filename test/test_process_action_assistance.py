@@ -13,7 +13,7 @@ class DummyGrid(InterfaceGrid):
     def __init__(self, mapping: Dict[GridPosition, InterfaceCard]) -> None:
         self.mapping: Dict[GridPosition, InterfaceCard] = mapping
 
-    def getCard(self, position) -> Optional[InterfaceCard]:
+    def getCard(self, position: GridPosition) -> Optional[InterfaceCard]:
         return self.mapping.get(position)
     
     def canPutCard(self, coordinate: GridPosition)-> bool:
@@ -38,16 +38,16 @@ class DummyGrid(InterfaceGrid):
         return ""
     
 class AlwaysAssistanceEffect(Effect):
-    def hasAssistance(self):
+    def hasAssistance(self) -> bool:
         return True
-    def check(self, input, output, pollution):
+    def check(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
         return True
-    def state(self):
+    def state(self) -> str:
         return 'AlwaysAssistEffect'
     
 
 class TransformationFixedAlwaysAssist(TransformationFixed):
-    def hasAssistance(self):
+    def hasAssistance(self) -> bool:
         return True
     
 
@@ -79,8 +79,8 @@ def test_good_scenario_no_outputs() -> None:
 
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main_pos), (Resource.RED, main_pos)]
-    outputs = []
-    pollution = []
+    outputs: List[Resource, GridPosition] = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
@@ -107,7 +107,7 @@ def test_good_scenario_outputs() -> None:
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main_pos), (Resource.RED, main_pos)]
     outputs = [(Resource.FOOD, main_pos)]
-    pollution = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
@@ -132,7 +132,7 @@ def test_outputs_not_in_same_location() -> None:
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, GridPosition(-1,0)), (Resource.RED, main_pos)]
     outputs = [(Resource.FOOD, main_pos)]
-    pollution = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
@@ -161,7 +161,7 @@ def test_resources_not_in_same_location() -> None:
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main2_pos), (Resource.RED, main_pos)]
     outputs = [(Resource.FOOD, main_pos)]
-    pollution = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
@@ -189,7 +189,7 @@ def test_missing_resources() -> None:
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main2_pos), (Resource.RED, main_pos)]
     outputs = [(Resource.FOOD, main_pos)]
-    pollution = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
@@ -200,7 +200,7 @@ def test_missing_resources() -> None:
     assert Counter(main_card.resources) == Counter([Resource.RED])
     
 
-def test_inactive_card():
+def test_inactive_card() -> None:
     logic = ProcessActionAssistance()
 
     main_card = Card(pollutionSpacesL=1, upperEffect=AlwaysAssistanceEffect())
@@ -220,7 +220,7 @@ def test_inactive_card():
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main2_pos), (Resource.RED, main_pos)]
     outputs = [(Resource.FOOD, main_pos)]
-    pollution = []
+    pollution: List[GridPosition] = []
 
     result = logic.activateCard(
         main_card, main_grid,
