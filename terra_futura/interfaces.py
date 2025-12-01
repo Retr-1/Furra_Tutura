@@ -37,7 +37,7 @@ class Effect(ABC):
         pass
 
 # Card
-class InterfaceCard(ABC):
+class InterfaceCard:
     def __init__(self) ->None:
         # Attributes
         self.resources: List[Resource] = []
@@ -48,51 +48,40 @@ class InterfaceCard(ABC):
         self.lowerEffect: Optional[Effect] = None
 
     # --- Interface methods ---
-    @abstractmethod
     def isActive(self) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def canPutResources(self, resources: List[Resource]) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def putResources(self, resources: List[Resource]) -> None:
         pass
 
-    @abstractmethod
     def canGetResources(self, resources: List[Resource]) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def getResources(self, resources: List[Resource]) -> None:
         pass
 
-    @abstractmethod
     def canPlacePollution(self, amount: int = 1) -> bool:
         """Return True if placing `amount` pollution on this card is legal."""
-        pass
+        return True
 
-    @abstractmethod
     def placePollution(self, amount: int = 1) -> None:
         """Place `amount` pollution cubes on this card."""
         pass
 
-    @abstractmethod
     def check(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def checkLower(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def hasAssistance(self) -> bool:
-        pass
+        return True
 
-    @abstractmethod
     def state(self) -> str:
-        pass
+        return ''
 
 # Pile
 class InterfacePile(Protocol):
