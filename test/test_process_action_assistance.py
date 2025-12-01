@@ -19,8 +19,8 @@ class DummyGrid(InterfaceGrid):
     def canPutCard(self, coordinate: GridPosition)-> bool:
         return True
 
-    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> bool:
-        return True
+    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> None:
+        ...
 
     def canBeActivated(self, coordinate: GridPosition)-> bool:
         return True
@@ -79,7 +79,7 @@ def test_good_scenario_no_outputs() -> None:
 
     assistingPlayer = DummyPlayer(other_grid)
     inputs = [(Resource.GREEN, main_pos), (Resource.RED, main_pos)]
-    outputs: List[Resource, GridPosition] = []
+    outputs: List[tuple[Resource, GridPosition]] = []
     pollution: List[GridPosition] = []
 
     result = logic.activateCard(
