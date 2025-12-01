@@ -1,16 +1,15 @@
 from .simple_types import Resource, GridPosition
 from collections import Counter
-from .interfaces import InterfaceGrid
-from .card import Card
+from .interfaces import InterfaceGrid, ProcessActionInterface, InterfaceCard
 
-class ProcessAction():
-    def activateCard(self, card: Card, grid: InterfaceGrid, 
+class ProcessAction(ProcessActionInterface):
+    def activateCard(self, card: InterfaceCard, grid: InterfaceGrid, 
                      inputs: list[tuple[Resource, GridPosition]], 
                      outputs: list[tuple[Resource, GridPosition]], 
                      pollution: list[GridPosition]) -> bool:
         """Checks whether the action is valid, and if so performs it."""
 
-        if not card.is_active:
+        if not card.isActive():
             return False
 
         #check pollution for each position

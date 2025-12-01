@@ -4,17 +4,39 @@ from terra_futura.process_action import ProcessAction
 from terra_futura.card import Card
 from terra_futura.arbitrary_basic import ArbitraryBasic
 from terra_futura.simple_types import Resource, GridPosition
+from terra_futura.interfaces import InterfaceGrid, InterfaceCard
+from typing import Optional, List
 
-
-class DummyGrid:
-    def __init__(self, mapping):
+class DummyGrid(InterfaceGrid):
+    def __init__(self, mapping) -> None:
         self.mapping = mapping
 
-    def getCard(self, position):
+    def getCard(self, position) -> Optional[InterfaceCard]:
         return self.mapping.get(position)
+    
+    def canPutCard(self, coordinate: GridPosition)-> bool:
+        return True
+
+    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> bool:
+        return True
+
+    def canBeActivated(self, coordinate: GridPosition)-> bool:
+        return True
+        
+    def setActivated(self, coordinate: GridPosition) -> None:
+        pass
+
+    def setActivationPattern(self, pattern: List[GridPosition]) -> None:
+        pass
+        
+    def endTurn(self) -> None:
+        pass
+
+    def state(self) -> str:
+        return ""
 
 
-def test_activate_card_inactive_returns_false():
+def test_activate_card_inactive_returns_false() -> None:
     pa = ProcessAction()
     # create an inactive card (no safe pollution slots) and ensure activation is rejected
     card = Card(pollutionSpacesL=0)
@@ -24,7 +46,7 @@ def test_activate_card_inactive_returns_false():
     assert result is False
 
 
-def test_activate_card_rejects_when_pollution_cannot_be_placed():
+def test_activate_card_rejects_when_pollution_cannot_be_placed() -> None:
     pa = ProcessAction()
     # acting card is active
     acting = Card()
@@ -39,7 +61,7 @@ def test_activate_card_rejects_when_pollution_cannot_be_placed():
     # don't rely on internal attribute names for center slots; just assert activation failed
     
 
-def test_activate_card_rejects_when_inputs_not_available():
+def test_activate_card_rejects_when_inputs_not_available() -> None:
     pa = ProcessAction()
     acting = Card()
     # resource provider at P has no resources
@@ -51,7 +73,7 @@ def test_activate_card_rejects_when_inputs_not_available():
     assert result is False
 
 
-def test_activate_card_rejects_when_outputs_cannot_be_put():
+def test_activate_card_rejects_when_outputs_cannot_be_put() -> None:
     pa = ProcessAction()
     # make acting card unable to accept outputs by creating it inactive
     acting = Card(pollutionSpacesL=0)
@@ -61,7 +83,7 @@ def test_activate_card_rejects_when_outputs_cannot_be_put():
     result = pa.activateCard(acting, grid, inputs=[], outputs=[(Resource.GOODS, pos)], pollution=[])
     assert result is False
     
-def test_activate_card_rejects_when_output_targets_different_active_card():
+def test_activate_card_rejects_when_output_targets_different_active_card() -> None:
     pa = ProcessAction()
     acting = Card()
     # another active card at a different position -- outputs must target the acting card
@@ -74,7 +96,7 @@ def test_activate_card_rejects_when_output_targets_different_active_card():
     assert result is False
 
 
-def test_activate_card_success_performs_actions():
+def test_activate_card_success_performs_actions() -> None:
     pa = ProcessAction()
     # acting card has two resources to pay and an effect that requires 2 inputs,
     # produces pollution and fills safe slots as available
