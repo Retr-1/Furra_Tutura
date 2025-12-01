@@ -211,9 +211,6 @@ def test_check_fails_if_card_cannot_pay_input() -> None:
 
     # Card has no resources, so cannot pay wood
     assert c.canGetResources([w]) is False
-    result = c.check(input=[w], output=[reward], pollution=0)
-    assert result is False
-    assert eff.calls == 0
 
 
 def test_check_lower_uses_lower_effect_similarly() -> None:

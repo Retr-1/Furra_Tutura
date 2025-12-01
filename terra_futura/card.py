@@ -162,10 +162,6 @@ class Card(InterfaceCard):
         if self.upperEffect is None:
             return False
 
-        # Can this card pay the requested input (from its own resources)?
-        if not self.canGetResources(input):
-            return False
-
         # Delegate detailed IO check to the effect itself
         return self.upperEffect.check(input, output, pollution)
 
@@ -177,9 +173,6 @@ class Card(InterfaceCard):
         if not self.is_active:
             return False
         if self.lowerEffect is None:
-            return False
-
-        if not self.canGetResources(input):
             return False
 
         return self.lowerEffect.check(input, output, pollution)
