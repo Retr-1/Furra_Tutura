@@ -1,5 +1,3 @@
-# test/test_game_observer.py
-
 from typing import Dict
 from unittest.mock import Mock
 
