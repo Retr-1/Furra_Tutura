@@ -29,6 +29,10 @@ class Pile:
             shuffler = RandomShuffler()
         self.shuffler = shuffler
         self.visible_cards: List[InterfaceCard] = list(visible_cards)
+        
+        if len(visible_cards) > 4:
+            raise ValueError("Too much visible cards")
+        
         self.hidden_cards: List[InterfaceCard] = list(hidden_cards)
         self.discarded_cards: List[InterfaceCard] = []
         self._fill_visible()
@@ -44,7 +48,7 @@ class Pile:
                     raise ValueError('Not enough cards in deck')
                 self._restore_hidden()
 
-            self.visible_cards.append(self.hidden_cards.pop())
+            self.visible_cards.insert(0, self.hidden_cards.pop())
 
     
     def getCard(self, index: int) -> Optional[InterfaceCard]:
@@ -54,10 +58,14 @@ class Pile:
         return self.visible_cards[index-1]
     
     def takeCard(self, index: int) -> InterfaceCard:
-        if index < 1 or index > 4:
+        if index < 0 or index > 4:
             raise ValueError("Cannot get card at that position")
-        
+    
         self._fill_visible()
+
+        if index == 0:
+            return self.hidden_cards.pop()
+
         card = self.visible_cards.pop(index-1)
         self._fill_visible()
         return card
@@ -72,9 +80,9 @@ class Pile:
         
         for i,x in enumerate(self.visible_cards):
             out += f'Visible {i}: {x.state()}\n'
-        for i,x in enumerate(self.visible_cards):
+        for i,x in enumerate(self.hidden_cards):
             out += f'Hidden {i}: {x.state()}\n'
-        for i,x in enumerate(self.visible_cards):
+        for i,x in enumerate(self.discarded_cards):
             out += f'Discarded {i}: {x.state()}\n'
         
         return out
