@@ -75,10 +75,8 @@ class TransformationFixed(Effect):
         """
         Human-readable representation, useful for debugging or UI logs.
         """
-        from_types = [type(r).__name__ for r in self.from_]
-        to_types = [type(r).__name__ for r in self.to]
 
-        core = f"Pay {from_types} → Gain {to_types}"
+        core = f"Pay {self.from_} → Gain {self.to}"
         if self.pollution > 0:
             core += f" (+{self.pollution} pollution)"
         return core
