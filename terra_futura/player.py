@@ -10,6 +10,7 @@ class Player(PlayerInterface):
     activation_patterns: list[ActivationPattern]
     scoring_methods: list[ScoringMethod]
     grid: Grid
+    hasBeenAssisted: bool = False
     
     def __post_init__(self) -> None:
         if len(self.activation_patterns) != 2:

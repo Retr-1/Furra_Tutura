@@ -79,8 +79,7 @@ class ArbitraryBasic(Effect):
         """
         Nicely formatted effect description for debugging/UI.
         """
-        to_types = [type(r).__name__ for r in self.to]
-        return f"Pay any {self.from_} → Gain {to_types} (+{self.pollution} pollution)"
+        return f"Pay any {self.from_} → Gain {self.to} (+{self.pollution} pollution)"
     
 
 """
