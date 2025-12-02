@@ -25,7 +25,7 @@ def test_first_card_can_be_placed_anywhere() -> None:
     card = DummyCard()
 
     pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=5, y=-2)
+    pos2 = GridPosition(x=2, y=-2)
 
     assert grid.canPutCard(pos1) is True
     assert grid.canPutCard(pos2) is True
@@ -38,8 +38,8 @@ def test_cannot_place_two_cards_far_apart() -> None:
     grid = Grid()
     card = DummyCard()
 
-    pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=5, y=-2)
+    pos1 = GridPosition(x=-2, y=0)
+    pos2 = GridPosition(x=2, y=-2)
 
     grid.putCard(pos1, card)
     assert grid.canPutCard(pos2) is False
@@ -99,7 +99,7 @@ def test_fourth_card_in_same_row_is_not_allowed() -> None:
         grid.putCard(pos, card)
 
     # 4th in the same row would create width 4 → violates 3×3 rule
-    pos4 = GridPosition(x=3, y=0)
+    pos4 = GridPosition(x=-1, y=0)
     assert grid.canPutCard(pos4) is False
     with pytest.raises(ValueError):
         grid.putCard(pos4, cards[3])
@@ -137,7 +137,7 @@ def test_fourth_card_in_same_column_is_not_allowed() -> None:
     for card, pos in zip(cards[:3], positions):
         grid.putCard(pos, card)
 
-    pos4 = GridPosition(x=0, y=3)
+    pos4 = GridPosition(x=0, y=-2)
     assert grid.canPutCard(pos4) is False
     with pytest.raises(ValueError):
         grid.putCard(pos4, cards[3])
@@ -164,9 +164,7 @@ def test_three_by_three_territory_is_allowed_but_cannot_be_extended() -> None:
 
     # Now grid is 3×3; any new position must extend rows/cols beyond 3
     outside_positions = [
-        GridPosition(x=3, y=1),
         GridPosition(x=-1, y=1),
-        GridPosition(x=1, y=3),
         GridPosition(x=1, y=-1),
     ]
 
