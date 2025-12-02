@@ -3,7 +3,7 @@
 import pytest
 from typing import cast, List
 
-from terra_futura.pile import Pile
+from terra_futura.pile import Pile, InterfaceShuffler
 from terra_futura.interfaces import InterfaceCard
 
 
@@ -43,7 +43,7 @@ def test_init_fills_visible_up_to_four_from_hidden() -> None:
     hidden = _as_interface_cards(_make_cards("h1", "h2", "h3"))  # top is h3
     shuffler = FakeShuffler()
 
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=shuffler)
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, shuffler))
 
 
     assert len(pile.visible_cards) == 4
@@ -62,11 +62,15 @@ def test_init_fills_visible_up_to_four_from_hidden() -> None:
 def test_getCard_returns_card_for_valid_index_and_none_out_of_range() -> None:
     visible = _as_interface_cards(_make_cards("a", "b", "c", "d"))
     hidden = _as_interface_cards(_make_cards("x"))
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     # valid indices 1..4
-    assert pile.getCard(1).state() == "a"
-    assert pile.getCard(4).state() == "d"
+    card1 = pile.getCard(1)
+    assert card1 is not None
+    assert card1.state() == "a"
+    card4 = pile.getCard(4)
+    assert card4 is not None
+    assert card4.state() == "d"
 
     # out of range indices
     assert pile.getCard(0) is None
@@ -76,7 +80,7 @@ def test_getCard_returns_card_for_valid_index_and_none_out_of_range() -> None:
 def test_takeCard_from_visible_removes_selected_and_refills_from_hidden() -> None:
     visible = _as_interface_cards(_make_cards("v1", "v2", "v3", "v4"))
     hidden = _as_interface_cards(_make_cards("h1", "h2"))  # top is h2
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     taken = pile.takeCard(2)  # should take "v2"
 
@@ -95,7 +99,7 @@ def test_takeCard_from_visible_removes_selected_and_refills_from_hidden() -> Non
 def test_takeCard_index_0_takes_directly_from_hidden_without_changing_visible() -> None:
     visible = _as_interface_cards(_make_cards("v1", "v2", "v3", "v4"))
     hidden = _as_interface_cards(_make_cards("h1", "h2"))  # top is h2
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     # takeCard(0) means "take directly from hidden deck"
     taken = pile.takeCard(0)
@@ -114,7 +118,7 @@ def test_takeCard_index_0_takes_directly_from_hidden_without_changing_visible() 
 def test_takeCard_raises_for_invalid_index() -> None:
     visible = _as_interface_cards(_make_cards("v1", "v2", "v3", "v4"))
     hidden = _as_interface_cards(_make_cards("h1"))
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     with pytest.raises(ValueError, match="Cannot get card at that position"):
         pile.takeCard(-1)
@@ -126,7 +130,7 @@ def test_takeCard_raises_for_invalid_index() -> None:
 def test_removeLastCard_discards_oldest_and_refills_from_hidden() -> None:
     visible = _as_interface_cards(_make_cards("v1", "v2", "v3", "v4"))
     hidden = _as_interface_cards(_make_cards("h1", "h2"))  # top is h2
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     pile.removeLastCard()
 
@@ -147,7 +151,7 @@ def test_init_raises_when_not_enough_cards_to_reach_four_visible() -> None:
     hidden = _as_interface_cards(_make_cards("h1", "h2"))
 
     with pytest.raises(ValueError, match="Not enough cards in deck"):
-        Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+        Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
 
 def test_removeLastCard_triggers_reshuffle_using_shuffler() -> None:
@@ -156,7 +160,7 @@ def test_removeLastCard_triggers_reshuffle_using_shuffler() -> None:
     hidden = _as_interface_cards(_make_cards("h1"))  # single hidden card
     shuffler = FakeShuffler()
 
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=shuffler)
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, shuffler))
 
     # 1st remove:
     #   discard v4 → [v4]
@@ -188,7 +192,7 @@ def test_removeLastCard_triggers_reshuffle_using_shuffler() -> None:
 def test_state_includes_visible_card_states() -> None:
     visible = _as_interface_cards(_make_cards("v1", "v2", "v3", "v4"))
     hidden = _as_interface_cards(_make_cards("h1"))
-    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=FakeShuffler())
+    pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=cast(InterfaceShuffler, FakeShuffler()))
 
     s = pile.state()
     # At minimum, state() should mention visible cards via their state()

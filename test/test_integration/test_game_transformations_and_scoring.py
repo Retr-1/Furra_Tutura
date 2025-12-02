@@ -189,7 +189,7 @@ def test_resource_transformation_and_scoring() -> None:
         moveCard=move_card,
         processAction=process_action,
         processActionAssistance=process_action_assistance,
-        selectReward=select_reward,
+        selectReward=select_reward,  # type: ignore[arg-type]
         gameObserver=game_observer
     )
 

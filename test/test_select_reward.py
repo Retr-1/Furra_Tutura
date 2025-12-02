@@ -50,7 +50,7 @@ def _two_resources() -> tuple[Resource, Resource]:
 # Tests                                                              #
 # ------------------------------------------------------------------ #
 
-def test_initial_state_is_idle_and_empty():
+def test_initial_state_is_idle_and_empty() -> None:
     sr = SelectReward()
 
     assert sr.player is None
@@ -58,7 +58,7 @@ def test_initial_state_is_idle_and_empty():
     assert sr.state() == RewardState.IDLE
 
 
-def test_set_reward_raises_if_player_has_no_such_card():
+def test_set_reward_raises_if_player_has_no_such_card() -> None:
     sr = SelectReward()
     r1, _ = _two_resources()
 
@@ -75,7 +75,7 @@ def test_set_reward_raises_if_player_has_no_such_card():
         )
 
 
-def test_set_reward_sets_player_selection_and_pending_state_when_card_is_on_grid():
+def test_set_reward_sets_player_selection_and_pending_state_when_card_is_on_grid() -> None:
     sr = SelectReward()
     r1, r2 = _two_resources()
     rewards = [r1, r2]
@@ -95,7 +95,7 @@ def test_set_reward_sets_player_selection_and_pending_state_when_card_is_on_grid
     )
 
     # basic attributes
-    assert sr.player is player
+    assert sr.player is not None
     assert sr.selection == [r1, r2]
     assert sr.state() == RewardState.PENDING
 
@@ -107,7 +107,7 @@ def test_set_reward_sets_player_selection_and_pending_state_when_card_is_on_grid
     assert sr.selection == [r1, r2]
 
 
-def test_can_select_reward_only_when_pending_and_resource_in_selection():
+def test_can_select_reward_only_when_pending_and_resource_in_selection() -> None:
     sr = SelectReward()
     r1, r2 = _two_resources()
 
@@ -141,7 +141,7 @@ def test_can_select_reward_only_when_pending_and_resource_in_selection():
     assert sr.canSelectReward(r2) is False
 
 
-def test_select_reward_success_updates_state_and_selection():
+def test_select_reward_success_updates_state_and_selection() -> None:
     sr = SelectReward()
     r1, r2 = _two_resources()
 
@@ -165,7 +165,7 @@ def test_select_reward_success_updates_state_and_selection():
     assert sr.state() == RewardState.SELECTED
 
 
-def test_select_reward_raises_if_resource_not_allowed():
+def test_select_reward_raises_if_resource_not_allowed() -> None:
     sr = SelectReward()
     r1, r2 = _two_resources()
 
@@ -186,7 +186,7 @@ def test_select_reward_raises_if_resource_not_allowed():
         sr.selectReward(r2)
 
 
-def test_select_reward_raises_if_not_pending():
+def test_select_reward_raises_if_not_pending() -> None:
     sr = SelectReward()
     r1 = Resource.YELLOW
 

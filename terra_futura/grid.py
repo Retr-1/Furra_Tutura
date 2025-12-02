@@ -98,7 +98,7 @@ class Grid(InterfaceGrid):
         lines.append("Grid:")
 
         for pos, card in sorted_items:
-            is_activated = pos in self._activated_this_turn
+            is_activated = pos in self.shouldActivate
             
             marker: str
             if is_activated:

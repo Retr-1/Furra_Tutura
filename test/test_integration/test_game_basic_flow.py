@@ -184,7 +184,7 @@ def test_basic_game_flow_with_pollution() -> None:
         moveCard=move_card,
         processAction=process_action,
         processActionAssistance=process_action_assistance,
-        selectReward=select_reward,
+        selectReward=select_reward,  # type: ignore[arg-type]
         gameObserver=game_observer
     )
 
