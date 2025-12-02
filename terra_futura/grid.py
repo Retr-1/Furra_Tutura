@@ -12,8 +12,8 @@ class Grid (InterfaceGrid):
     def canPutCard(self, coordinate: GridPosition)-> bool:
         return False
 
-    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> bool:
-        return False
+    def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> None:
+        ...
 
     def canBeActivated(self, coordinate: GridPosition)-> bool:
         return False
