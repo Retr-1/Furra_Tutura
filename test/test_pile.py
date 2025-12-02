@@ -21,7 +21,6 @@ class FakeCard:
 
 class FakeShuffler:
     def __init__(self) -> None:
-        # Each element is the deck passed to shuffle() at that point in time.
         self.calls: List[list[InterfaceCard]] = []
 
     def shuffle(self, deck: list[InterfaceCard]) -> list[InterfaceCard]:
@@ -34,37 +33,28 @@ def _make_cards(*labels: str) -> list[FakeCard]:
 
 
 def _as_interface_cards(cards: list[FakeCard]) -> list[InterfaceCard]:
-    # Tell mypy to treat FakeCard as InterfaceCard for this test.
     return cast(List[InterfaceCard], cards)
 
 
-# ---------------------------------------------------------------------
-#  Tests
-# ---------------------------------------------------------------------
 
 def test_init_fills_visible_up_to_four_from_hidden() -> None:
-    # visible has only 2 cards, hidden has 3 → Pile must top up to 4
+
     visible = _as_interface_cards(_make_cards("v1", "v2"))
     hidden = _as_interface_cards(_make_cards("h1", "h2", "h3"))  # top is h3
     shuffler = FakeShuffler()
 
     pile = Pile(visible_cards=visible, hidden_cards=hidden, shuffler=shuffler)
 
-    # visible should now have 4 cards
+
     assert len(pile.visible_cards) == 4
 
-    # Order:
-    #   start: visible = [v1, v2]
-    #   _fill_visible: pop h3 → insert at 0 → [h3, v1, v2]
-    #                  pop h2 → insert at 0 → [h2, h3, v1, v2]
     visible_states = [c.state() for c in pile.visible_cards]
     assert visible_states == ["h2", "h3", "v1", "v2"]
 
-    # one hidden card remains (h1)
+
     hidden_states = [c.state() for c in pile.hidden_cards]
     assert hidden_states == ["h1"]
 
-    # no discards yet, and shuffler not used
     assert len(pile.discarded_cards) == 0
     assert shuffler.calls == []
 
@@ -90,16 +80,7 @@ def test_takeCard_from_visible_removes_selected_and_refills_from_hidden() -> Non
 
     taken = pile.takeCard(2)  # should take "v2"
 
-    # returned card is correct
     assert taken.state() == "v2"
-
-    # Explanation:
-    #   initial visible = [v1, v2, v3, v4]
-    #   takeCard(2) calls _fill_visible() first → already 4 cards, no change
-    #   then removes index 2 (v2) → [v1, v3, v4]
-    #   then _fill_visible():
-    #       hidden = [h1, h2]; pop() → h2; insert at 0
-    #       visible = [h2, v1, v3, v4]
     visible_states = [c.state() for c in pile.visible_cards]
     assert visible_states == ["h2", "v1", "v3", "v4"]
 
@@ -122,8 +103,6 @@ def test_takeCard_index_0_takes_directly_from_hidden_without_changing_visible() 
     # should be top of hidden deck (h2)
     assert taken.state() == "h2"
 
-    # visible should remain unchanged (apart from the internal _fill_visible,
-    # which did nothing because visible already had 4 cards)
     visible_states = [c.state() for c in pile.visible_cards]
     assert visible_states == ["v1", "v2", "v3", "v4"]
 
@@ -154,15 +133,6 @@ def test_removeLastCard_discards_oldest_and_refills_from_hidden() -> None:
     # oldest visible (last) was v4 → must be in discard pile
     discarded_states = [c.state() for c in pile.discarded_cards]
     assert discarded_states == ["v4"]
-
-    # Explanation:
-    #   initial visible = [v1, v2, v3, v4]
-    #   removeLastCard():
-    #       _fill_visible() → unchanged
-    #       pop() last → v4 → discarded
-    #       visible = [v1, v2, v3]
-    #       _fill_visible(): pop h2 → insert at 0
-    #       visible = [h2, v1, v2, v3]
     visible_states = [c.state() for c in pile.visible_cards]
     assert visible_states == ["h2", "v1", "v2", "v3"]
 
@@ -195,12 +165,6 @@ def test_removeLastCard_triggers_reshuffle_using_shuffler() -> None:
     assert [c.state() for c in pile.discarded_cards] == ["v4"]
     assert [c.state() for c in pile.hidden_cards] == []
 
-    # 2nd remove:
-    #   discard last (v3) → discarded [v4, v3], visible [h1, v1, v2]
-    #   refill: hidden empty, discarded non-empty → _restore_hidden
-    #           shuffler.shuffle([v4, v3]) → [v4, v3]
-    #           hidden.extend(...) → hidden [v4, v3], discarded cleared
-    #           then pop v3 → insert at 0 → visible [v3, h1, v1, v2], hidden [v4]
     pile.removeLastCard()
 
     # Shuffler must have been called exactly once with [v4, v3]
