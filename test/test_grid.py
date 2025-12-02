@@ -316,10 +316,6 @@ def test_endTurn_clears_shouldActivate() -> None:
     assert grid.canBeActivated(pos1) is False
 
 
-# ---------------------------------------------------------------------------
-# Activation pattern: setActivationPattern + activationPattern list
-# ---------------------------------------------------------------------------
-
 def test_setActivationPattern_raises_if_grid_not_full() -> None:
     grid = Grid()
     card = DummyCard()
@@ -333,11 +329,6 @@ def test_setActivationPattern_raises_if_grid_not_full() -> None:
 
 
 def test_setActivationPattern_offsets_pattern_to_grid_coordinates() -> None:
-    """
-    setActivationPattern takes a 3×3 local pattern where (0,0) is the
-    bottom-left of the 3×3 territory, and maps it into actual grid
-    coordinates based on current min x and min y of placed cards.
-    """
     grid = Grid()
     cards: List[DummyCard] = [DummyCard() for _ in range(9)]
 

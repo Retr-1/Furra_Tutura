@@ -141,10 +141,6 @@ def test_effect_or_matches_transformation_fixed_with_correct_io_and_pollution() 
 
 
 def test_effect_or_matches_arbitrarybasic_with_correct_count_and_pollution() -> None:
-    """
-    EffectOr should return True when (input, output, pollution) matches
-    its ArbitraryBasic child: correct length of input, correct output, correct pollution.
-    """
 
     # Create resources
     r1, r2, reward = [Resource.RED, Resource.GREEN, Resource.MONEY]
@@ -174,10 +170,6 @@ def test_effect_or_matches_arbitrarybasic_with_correct_count_and_pollution() -> 
 
 
 def test_effect_or_picks_any_matching_child_with_io_and_pollution() -> None:
-    """
-    With multiple children, EffectOr should accept if *any* Effect matches
-    the given (input, output, pollution), and reject otherwise.
-    """
     # Resources for TransformationFixed
     wood, brick = [Resource.GREEN, Resource.RED]
     trans = TransformationFixed(

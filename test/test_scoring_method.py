@@ -57,21 +57,6 @@ class GridFake(InterfaceGrid):
         return ""
 
 class CardFake(InterfaceCard):
-    """
-    Terra Futura Card implementation.
-
-    Responsibilities:
-    - Store resources produced on this card.
-    - Track pollution and whether the card is active or inactive.
-    - Delegate input/output/pollution validation to its Effect(s).
-    - Enforce rules about taking resources from inactive cards.
-
-    UML attributes:
-        resources: Resource[]
-        pollutionSpacesL: int
-        0..1 upperEffect: Effect
-        0..1 lowerEffect: Effect
-    """
 
     def __init__(
         self,
@@ -102,25 +87,13 @@ class CardFake(InterfaceCard):
 
     @property
     def is_active(self) -> bool:
-        """
-        Card is active if it has NO pollution cube in the center.
-        (Rules: a cube in the center deactivates the card.)
-        """
+
         return self.pollution < self.pollutionSpacesL
 
     def isActive(self) -> bool:
         return self.is_active
 
     def canPlacePollution(self, amount: int = 1) -> bool:
-        """
-        Check if it is legal to place `amount` new pollution cubes
-        on this card, according to the rule:
-
-            - New pollution from effects cannot be placed on *already inactive* cards.
-
-        We do NOT restrict how many cubes can be in the center; the game
-        only cares that at least one there makes the card inactive.
-        """
         if amount < 0:
             return False
         if not self.is_active:
@@ -135,15 +108,6 @@ class CardFake(InterfaceCard):
         return True
 
     def placePollution(self, amount: int = 1) -> None:
-        """
-        Place `amount` new pollution cubes on this card.
-
-        Behavior:
-        - Fill free 'safe' pollution spaces first (up to pollutionSpacesL).
-        - Any remaining cube goes into the center, deactivating the card.
-
-        Raises if: Attempting to put more pollution into the card than possible
-        """
 
         if amount == 0:
             return
@@ -162,40 +126,18 @@ class CardFake(InterfaceCard):
     # ------------------------------------------------------------------
 
     def canPutResources(self, resources: List[Resource]) -> bool:
-        """
-        Can this card receive these resources as production?
-
-        In Terra Futura, there's no capacity limit for resources on cards;
-        the only relevant rule is that *inactive* cards do not produce anything.
-
-        So:
-        - If card is inactive, we treat production as illegal.
-        - Otherwise always True.
-        """
+   
         if not self.is_active:
             return False
         return True
 
     def putResources(self, resources: List[Resource]) -> None:
-        """
-        Add resources onto this card (produced by its effect).
 
-        Raises if card is inactive.
-        """
         if not self.canPutResources(resources):
             raise ValueError("Cannot add resources to an inactive card.")
         self.resources.extend(resources)
 
     def canGetResources(self, resources: List[Resource]) -> bool:
-        """
-        Can this card *pay* (give up) the given resources?
-
-        Rules we enforce:
-        - Resources cannot be taken from inactive cards.
-        - There must be enough matching resources on this card.
-
-        We treat the list as a multiset: each occurrence must be present.
-        """
         if not self.is_active:
             return False
 
@@ -205,13 +147,6 @@ class CardFake(InterfaceCard):
         return all(have[r] >= c for r, c in wanted.items())
 
     def getResources(self, resources: List[Resource]) -> None:
-        """
-        Remove the given resources from this card (i.e., pay them).
-
-        Raises if:
-        - card is inactive
-        - card does not contain sufficient resources
-        """
         if not self.canGetResources(resources):
             raise ValueError("Cannot pay these resources from this card.")
 
@@ -230,19 +165,8 @@ class CardFake(InterfaceCard):
 
         self.resources = new_contents
 
-    # ------------------------------------------------------------------
-    # Effect integration
-    # ------------------------------------------------------------------
 
     def check(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
-        """
-        Validate whether the *upper* effect of this card can be applied with
-        the given (input, output, pollution).
-
-        This combines:
-        - card-level rules (active, can pay resources, can accept pollution)
-        - effect-level rules (what trades are allowed)
-        """
         if not self.is_active:
             return False
         if self.upperEffect is None:
@@ -260,10 +184,6 @@ class CardFake(InterfaceCard):
         return self.upperEffect.check(input, output, pollution)
 
     def checkLower(self, input: List[Resource], output: List[Resource], pollution: int) -> bool:
-        """
-        Same as check(), but for the *lower* effect (usually the bottom
-        exchange effect on the card).
-        """
         if not self.is_active:
             return False
         if self.lowerEffect is None:
@@ -278,20 +198,11 @@ class CardFake(InterfaceCard):
         return self.lowerEffect.check(input, output, pollution)
 
     def hasAssistance(self) -> bool:
-        """
-        True if any of this card's effects involve Assistance.
-
-        This just delegates to the effects; the Card does not know the
-        semantics itself.
-        """
         upper = self.upperEffect.hasAssistance() if self.upperEffect else False
         lower = self.lowerEffect.hasAssistance() if self.lowerEffect else False
         return upper or lower
 
     def state(self) -> str:
-        """
-        Human-readable summary, useful for debugging or logs.
-        """
         status = "active" if self.is_active else "inactive"
         return (
             f"Card(status={status}, "

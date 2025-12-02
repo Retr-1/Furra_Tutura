@@ -10,9 +10,6 @@ from terra_futura.simple_types import Resource, GridPosition
 from terra_futura.interfaces import InterfaceCard, PlayerInterface
 
 
-# ------------------------------------------------------------------ #
-# Test doubles                                                       #
-# ------------------------------------------------------------------ #
 
 class DummyCard:
     """Minimal card with a 'state()' method to satisfy SelectReward logic."""
@@ -46,9 +43,6 @@ def _two_resources() -> tuple[Resource, Resource]:
     return Resource.YELLOW, Resource.RED
 
 
-# ------------------------------------------------------------------ #
-# Tests                                                              #
-# ------------------------------------------------------------------ #
 
 def test_initial_state_is_idle_and_empty() -> None:
     sr = SelectReward()
