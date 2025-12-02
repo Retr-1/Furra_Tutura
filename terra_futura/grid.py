@@ -13,9 +13,6 @@ class Grid(InterfaceGrid):
         # Coordinate -> card
         self._cells: Dict[GridPosition, InterfaceCard] = {}
 
-        # Current activation pattern (order chosen by the player / game logic)
-        self._activation_pattern: List[GridPosition] = []
-
         # Coordinates already activated in the current turn
         self._activated_this_turn: Set[GridPosition] = set()
 
@@ -62,9 +59,6 @@ class Grid(InterfaceGrid):
         if coordinate not in self._cells:
             return False
 
-        if coordinate not in self._activation_pattern:
-            return False
-
         if coordinate in self._activated_this_turn:
             return False
 
@@ -80,19 +74,13 @@ class Grid(InterfaceGrid):
         self._activated_this_turn.add(coordinate)
 
     def setActivationPattern(self, pattern: List[GridPosition]) -> None:
-        self._activation_pattern = pattern
-        self._activated_this_turn.clear()
+        for pos in pattern:
+            self.setActivated(pos)
 
     def endTurn(self) -> None:
         self._activated_this_turn.clear()
 
     def state(self) -> str:
-        """
-        Return a simple string representation of the grid and activation state.
-
-        The format is not specified by the assignment, so this is mainly
-        for debugging / Game.state() composition.
-        """
         if not self._cells:
             return "Grid(empty)"
 
@@ -106,15 +94,15 @@ class Grid(InterfaceGrid):
         lines.append("Grid:")
 
         for pos, card in sorted_items:
-            in_pattern = pos in self._activation_pattern
             is_activated = pos in self._activated_this_turn
+            
             marker: str
             if is_activated:
                 marker = "[X]"  # already activated this turn
-            elif in_pattern:
-                marker = "[*]"  # in pattern, not yet activated
+            elif pos in self._cells:
+                marker = "[*]"  # Card, not activated
             else:
-                marker = "[ ]"  # not in current pattern
+                marker = "[ ]"  # Empty cell
 
             try:
                 coord_str = f"({pos.y},{pos.x})"

@@ -17,39 +17,29 @@ class DummyCard(InterfaceCard):
 
 
 # ---------------------------------------------------------------------------
-# Placement rules
+# Placement rules (3×3 territory, coordinates in [-2, 2])
 # ---------------------------------------------------------------------------
 
-def test_first_card_can_be_placed_anywhere() -> None:
+def test_first_card_can_be_placed_anywhere_within_allowed_coordinates() -> None:
     grid = Grid()
     card = DummyCard()
 
     pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=2, y=-2)
+    pos2 = GridPosition(x=2, y=-2)  # still within [-2, 2]
 
+    # When grid is empty, any coordinate in allowed range is OK
     assert grid.canPutCard(pos1) is True
     assert grid.canPutCard(pos2) is True
 
-    # Actually place one to be sure putCard works on empty grid
     grid.putCard(pos1, card)
     assert grid.getCard(pos1) is card
-
-def test_cannot_place_two_cards_far_apart() -> None:
-    grid = Grid()
-    card = DummyCard()
-
-    pos1 = GridPosition(x=-2, y=0)
-    pos2 = GridPosition(x=2, y=-2)
-
-    grid.putCard(pos1, card)
-    assert grid.canPutCard(pos2) is False
 
 
 def test_cannot_put_card_on_occupied_coordinate() -> None:
     grid = Grid()
     card1 = DummyCard()
     card2 = DummyCard()
-    pos = GridPosition(x=1, y=1)
+    pos = GridPosition(x=0, y=0)
 
     grid.putCard(pos, card1)
 
@@ -63,23 +53,22 @@ def test_cannot_put_card_on_occupied_coordinate() -> None:
 
 def test_can_have_up_to_three_cards_in_same_row() -> None:
     """
-    According to rules, territory is 3×3 cards.
-    Having exactly 3 cards in one row is legal; the 4th would break 3×3.
+    Territory is at most 3×3 cards.
+    Using x in {-1, 0, 1} and fixed y = 0 is a legal 3-wide row.
     """
     grid = Grid()
     c1 = DummyCard()
     c2 = DummyCard()
     c3 = DummyCard()
 
-    # All in row y = 0, different x
-    pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=1, y=0)
-    pos3 = GridPosition(x=2, y=0)
+    pos1 = GridPosition(x=-1, y=0)
+    pos2 = GridPosition(x=0, y=0)
+    pos3 = GridPosition(x=1, y=0)
 
     grid.putCard(pos1, c1)
     grid.putCard(pos2, c2)
 
-    # This is the critical one – must be allowed by canPutCard
+    # Third in the row must be allowed
     assert grid.canPutCard(pos3) is True
     grid.putCard(pos3, c3)
 
@@ -88,18 +77,18 @@ def test_fourth_card_in_same_row_is_not_allowed() -> None:
     grid = Grid()
     cards: List[DummyCard] = [DummyCard() for _ in range(4)]
 
-    # Fill positions (0,0), (1,0), (2,0)
+    # Legal row: x in {-1, 0, 1}, y = 0
     positions = [
+        GridPosition(x=-1, y=0),
         GridPosition(x=0, y=0),
         GridPosition(x=1, y=0),
-        GridPosition(x=2, y=0),
     ]
 
     for card, pos in zip(cards[:3], positions):
         grid.putCard(pos, card)
 
-    # 4th in the same row would create width 4 → violates 3×3 rule
-    pos4 = GridPosition(x=-1, y=0)
+    # x = 2 would make width 4 (from -1 to 2 → 4 columns) → illegal
+    pos4 = GridPosition(x=2, y=0)
     assert grid.canPutCard(pos4) is False
     with pytest.raises(ValueError):
         grid.putCard(pos4, cards[3])
@@ -111,15 +100,14 @@ def test_can_have_up_to_three_cards_in_same_column() -> None:
     c2 = DummyCard()
     c3 = DummyCard()
 
-    # All in column x = 0, different y
-    pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=0, y=1)
-    pos3 = GridPosition(x=0, y=2)
+    # Legal column: y in {-1, 0, 1}, x = 0
+    pos1 = GridPosition(x=0, y=-1)
+    pos2 = GridPosition(x=0, y=0)
+    pos3 = GridPosition(x=0, y=1)
 
     grid.putCard(pos1, c1)
     grid.putCard(pos2, c2)
 
-    # Third in the column must be allowed
     assert grid.canPutCard(pos3) is True
     grid.putCard(pos3, c3)
 
@@ -129,15 +117,15 @@ def test_fourth_card_in_same_column_is_not_allowed() -> None:
     cards: List[DummyCard] = [DummyCard() for _ in range(4)]
 
     positions = [
+        GridPosition(x=0, y=-1),
         GridPosition(x=0, y=0),
         GridPosition(x=0, y=1),
-        GridPosition(x=0, y=2),
     ]
 
     for card, pos in zip(cards[:3], positions):
         grid.putCard(pos, card)
 
-    pos4 = GridPosition(x=0, y=-2)
+    pos4 = GridPosition(x=0, y=2)
     assert grid.canPutCard(pos4) is False
     with pytest.raises(ValueError):
         grid.putCard(pos4, cards[3])
@@ -145,27 +133,30 @@ def test_fourth_card_in_same_column_is_not_allowed() -> None:
 
 def test_three_by_three_territory_is_allowed_but_cannot_be_extended() -> None:
     """
-    Full 3×3 territory is legal. Any attempt to place a card outside
-    must be rejected because it would exceed 3 distinct rows or columns.
+    Full 3×3 territory (x,y in {-1,0,1}) is legal.
+    Any attempt to place a card outside must be rejected
+    because it would exceed 3 distinct rows or columns.
     """
     grid = Grid()
     cards: List[DummyCard] = [DummyCard() for _ in range(9)]
 
-    # Build a 3×3 block with x,y in {0,1,2}
+    # Build 3×3 block with x,y in {-1,0,1}
     positions = [
         GridPosition(x, y)
-        for y in range(3)
-        for x in range(3)
+        for y in (-1, 0, 1)
+        for x in (-1, 0, 1)
     ]
 
     for card, pos in zip(cards, positions):
         assert grid.canPutCard(pos) is True
         grid.putCard(pos, card)
 
-    # Now grid is 3×3; any new position must extend rows/cols beyond 3
+    # Now any position that expands x or y range beyond {-1,0,1} is illegal
     outside_positions = [
-        GridPosition(x=-1, y=1),
-        GridPosition(x=1, y=-1),
+        GridPosition(x=2, y=0),   # width from -1 to 2 → 4
+        GridPosition(x=-2, y=0),  # width from -2 to 1 → 4
+        GridPosition(x=0, y=2),   # height from -1 to 2 → 4
+        GridPosition(x=0, y=-2),  # height from -2 to 1 → 4
     ]
 
     for pos in outside_positions:
@@ -175,39 +166,27 @@ def test_three_by_three_territory_is_allowed_but_cannot_be_extended() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Activation pattern / per-turn activation
+# Activation behaviour (no stored pattern, just "activated this turn")
 # ---------------------------------------------------------------------------
 
-def test_card_cannot_be_activated_without_pattern() -> None:
+def test_can_be_activated_if_card_exists_and_not_yet_activated() -> None:
     grid = Grid()
     card = DummyCard()
     pos = GridPosition(x=0, y=0)
 
     grid.putCard(pos, card)
 
-    # No activation pattern set → cannot be activated
-    assert grid.canBeActivated(pos) is False
+    # Not activated yet → True
+    assert grid.canBeActivated(pos) is True
 
+
+def test_cannot_be_activated_if_no_card() -> None:
+    grid = Grid()
+    pos = GridPosition(x=0, y=0)
+
+    assert grid.canBeActivated(pos) is False
     with pytest.raises(ValueError):
         grid.setActivated(pos)
-
-
-def test_can_be_activated_if_in_pattern_and_not_yet_activated() -> None:
-    grid = Grid()
-    c1 = DummyCard()
-    c2 = DummyCard()
-
-    pos1 = GridPosition(x=0, y=0)
-    pos2 = GridPosition(x=1, y=0)
-
-    grid.putCard(pos1, c1)
-    grid.putCard(pos2, c2)
-
-    # Only pos1 will be in the activation pattern
-    grid.setActivationPattern([pos1])
-
-    assert grid.canBeActivated(pos1) is True
-    assert grid.canBeActivated(pos2) is False
 
 
 def test_setActivated_marks_coordinate_and_blocks_future_activation() -> None:
@@ -216,7 +195,6 @@ def test_setActivated_marks_coordinate_and_blocks_future_activation() -> None:
     pos = GridPosition(x=0, y=0)
 
     grid.putCard(pos, card)
-    grid.setActivationPattern([pos])
 
     assert grid.canBeActivated(pos) is True
 
@@ -229,25 +207,58 @@ def test_setActivated_marks_coordinate_and_blocks_future_activation() -> None:
         grid.setActivated(pos)
 
 
-def test_endTurn_resets_activation_but_keeps_pattern() -> None:
+def test_setActivationPattern_activates_all_positions() -> None:
     """
-    With your current implementation, endTurn clears only the
-    'activated this turn' set and leaves the pattern unchanged.
-    That means same pattern can be used again next turn.
+    In the new implementation, setActivationPattern does not store a pattern,
+    but immediately calls setActivated on each coordinate.
     """
+    grid = Grid()
+    c1 = DummyCard()
+    c2 = DummyCard()
+
+    pos1 = GridPosition(x=-1, y=0)
+    pos2 = GridPosition(x=1, y=0)
+
+    grid.putCard(pos1, c1)
+    grid.putCard(pos2, c2)
+
+    # Initially, both can be activated
+    assert grid.canBeActivated(pos1) is True
+    assert grid.canBeActivated(pos2) is True
+
+    grid.setActivationPattern([pos1, pos2])
+
+    # After setActivationPattern, both should be marked activated
+    assert grid.canBeActivated(pos1) is False
+    assert grid.canBeActivated(pos2) is False
+
+
+def test_setActivationPattern_raises_if_coordinate_without_card() -> None:
+    grid = Grid()
+    card = DummyCard()
+    valid_pos = GridPosition(x=0, y=0)
+    invalid_pos = GridPosition(x=1, y=0)
+
+    grid.putCard(valid_pos, card)
+
+    # Pattern includes a coordinate without a card → setActivated raises
+    with pytest.raises(ValueError):
+        grid.setActivationPattern([valid_pos, invalid_pos])
+
+
+def test_endTurn_resets_activation() -> None:
     grid = Grid()
     card = DummyCard()
     pos = GridPosition(x=0, y=0)
 
     grid.putCard(pos, card)
-    grid.setActivationPattern([pos])
-
     grid.setActivated(pos)
+
     assert grid.canBeActivated(pos) is False
 
     grid.endTurn()
 
-    # After endTurn(), card is still in pattern, but activation is reset
+    # After endTurn(), activation is reset
     assert grid.canBeActivated(pos) is True
 
 
@@ -260,24 +271,27 @@ def test_state_empty_grid() -> None:
     assert grid.state() == "Grid(empty)"
 
 
-def test_state_marks_pattern_and_activation() -> None:
+def test_state_marks_activated_and_non_activated_cards() -> None:
     grid = Grid()
     c1 = DummyCard()
     c2 = DummyCard()
 
-    pos1 = GridPosition(x=0, y=0)
+    pos1 = GridPosition(x=-1, y=0)
     pos2 = GridPosition(x=1, y=0)
 
     grid.putCard(pos1, c1)
     grid.putCard(pos2, c2)
 
-    grid.setActivationPattern([pos1])
-    grid.setActivated(pos1)
-
+    # Initially, none are activated → both should be "[*]"
     state_str = grid.state()
-    # Basic format checks
-    assert "Grid:" in state_str
-    # pos1 is in pattern and activated → [X]
-    assert "[X] (0,0)" in state_str
-    # pos2 is not in pattern → [ ]
-    assert "[ ] (0,1)" in state_str
+    assert "[*] (0,-1)" in state_str  # (y,x) = (0,-1)
+    assert "[*] (0,1)" in state_str   # (y,x) = (0,1)
+
+    # Activate one of them
+    grid.setActivated(pos1)
+    state_str = grid.state()
+
+    # pos1 is now activated → [X]
+    assert "[X] (0,-1)" in state_str
+    # pos2 is still not activated → [*]
+    assert "[*] (0,1)" in state_str
