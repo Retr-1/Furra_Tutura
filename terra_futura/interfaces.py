@@ -194,6 +194,7 @@ class ProcessActionAssistanceInterface(Protocol):
 
 
 class InterfaceSelectReward(Protocol):
+    player: int
     def setReward(self, player: int, card: InterfaceCard, reward: List[Resource]) ->None:
         ...
     
