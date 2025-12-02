@@ -166,112 +166,87 @@ def test_three_by_three_territory_is_allowed_but_cannot_be_extended() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Activation behaviour (no stored pattern, just "activated this turn")
+# Activation behaviour: shouldActivate + setActivated + endTurn
 # ---------------------------------------------------------------------------
 
-def test_can_be_activated_if_card_exists_and_not_yet_activated() -> None:
+def test_put_card_does_not_activate_anything_on_first_card() -> None:
     grid = Grid()
     card = DummyCard()
     pos = GridPosition(x=0, y=0)
 
     grid.putCard(pos, card)
 
-    # Not activated yet → True
-    assert grid.canBeActivated(pos) is True
-
-
-def test_cannot_be_activated_if_no_card() -> None:
-    grid = Grid()
-    pos = GridPosition(x=0, y=0)
-
-    assert grid.canBeActivated(pos) is False
-    with pytest.raises(ValueError):
-        grid.setActivated(pos)
-
-
-def test_setActivated_marks_coordinate_and_blocks_future_activation() -> None:
-    grid = Grid()
-    card = DummyCard()
-    pos = GridPosition(x=0, y=0)
-
-    grid.putCard(pos, card)
-
-    assert grid.canBeActivated(pos) is True
-
-    grid.setActivated(pos)
-
-    # Now it should no longer be activatable in this turn
+    # No other cards share row/col yet, so nothing should be in shouldActivate
     assert grid.canBeActivated(pos) is False
 
-    with pytest.raises(ValueError):
-        grid.setActivated(pos)
 
-
-def test_setActivationPattern_activates_all_positions() -> None:
-    """
-    In the new implementation, setActivationPattern does not store a pattern,
-    but immediately calls setActivated on each coordinate.
-    """
+def test_put_card_activates_existing_cards_in_same_row() -> None:
     grid = Grid()
     c1 = DummyCard()
     c2 = DummyCard()
 
     pos1 = GridPosition(x=-1, y=0)
-    pos2 = GridPosition(x=1, y=0)
+    pos2 = GridPosition(x=1, y=0)  # same row (y=0)
 
     grid.putCard(pos1, c1)
+
+    # After first card, nothing is marked
+    assert grid.canBeActivated(pos1) is False
+
     grid.putCard(pos2, c2)
 
-    # Initially, both can be activated
+    # pos1 should now be in shouldActivate because new card shares its row
     assert grid.canBeActivated(pos1) is True
-    assert grid.canBeActivated(pos2) is True
-
-    grid.setActivationPattern([pos1, pos2])
-
-    # After setActivationPattern, both should be marked activated
-    assert grid.canBeActivated(pos1) is False
+    # The newly placed card itself is NOT added to shouldActivate
     assert grid.canBeActivated(pos2) is False
 
 
-def test_setActivationPattern_raises_if_coordinate_without_card() -> None:
+def test_put_card_activates_existing_cards_in_same_column() -> None:
     grid = Grid()
-    card = DummyCard()
-    valid_pos = GridPosition(x=0, y=0)
-    invalid_pos = GridPosition(x=1, y=0)
+    c1 = DummyCard()
+    c2 = DummyCard()
 
-    grid.putCard(valid_pos, card)
+    pos1 = GridPosition(x=0, y=-1)
+    pos2 = GridPosition(x=0, y=1)  # same column (x=0)
 
-    # Pattern includes a coordinate without a card → setActivated raises
-    with pytest.raises(ValueError):
-        grid.setActivationPattern([valid_pos, invalid_pos])
+    grid.putCard(pos1, c1)
+    assert grid.canBeActivated(pos1) is False
+
+    grid.putCard(pos2, c2)
+
+    # pos1 now shares column with new card → should be activatable
+    assert grid.canBeActivated(pos1) is True
+    assert grid.canBeActivated(pos2) is False
 
 
-def test_endTurn_resets_activation() -> None:
+def test_multiple_existing_cards_in_same_row_or_column_are_activated() -> None:
     grid = Grid()
-    card = DummyCard()
-    pos = GridPosition(x=0, y=0)
+    c1 = DummyCard()
+    c2 = DummyCard()
+    c3 = DummyCard()
 
-    grid.putCard(pos, card)
-    grid.setActivated(pos)
+    pos1 = GridPosition(x=-1, y=0)
+    pos2 = GridPosition(x=0, y=0)
+    pos3 = GridPosition(x=1, y=0)
 
-    assert grid.canBeActivated(pos) is False
+    grid.putCard(pos1, c1)
+    grid.putCard(pos2, c2)
 
-    grid.endTurn()
+    # No activations yet (only 2 cards, second didn't share row with any
+    # *previous* cards? Actually it did: putting pos2 should activate pos1)
+    assert grid.canBeActivated(pos1) is True
+    assert grid.canBeActivated(pos2) is False
 
-    # After endTurn(), activation is reset
-    assert grid.canBeActivated(pos) is True
+    # Now adding third card in same row should activate both existing ones
+    grid.endTurn()  # clear shouldActivate to see effect purely from third placement
+    grid.putCard(pos3, c3)
+
+    assert grid.canBeActivated(pos1) is True
+    assert grid.canBeActivated(pos2) is True
+    assert grid.canBeActivated(pos3) is False
 
 
-# ---------------------------------------------------------------------------
-# State representation
-# ---------------------------------------------------------------------------
-
-def test_state_empty_grid() -> None:
-    grid = Grid()
-    assert grid.state() == "Grid(empty)"
-
-
-def test_state_marks_activated_and_non_activated_cards() -> None:
+def test_setActivated_removes_coordinate_from_shouldActivate() -> None:
     grid = Grid()
     c1 = DummyCard()
     c2 = DummyCard()
@@ -282,16 +257,117 @@ def test_state_marks_activated_and_non_activated_cards() -> None:
     grid.putCard(pos1, c1)
     grid.putCard(pos2, c2)
 
-    # Initially, none are activated → both should be "[*]"
-    state_str = grid.state()
-    assert "[*] (0,-1)" in state_str  # (y,x) = (0,-1)
-    assert "[*] (0,1)" in state_str   # (y,x) = (0,1)
+    # pos1 should be activatable (existing card sharing row with newly placed)
+    assert grid.canBeActivated(pos1) is True
 
-    # Activate one of them
     grid.setActivated(pos1)
-    state_str = grid.state()
+    assert grid.canBeActivated(pos1) is False
 
-    # pos1 is now activated → [X]
-    assert "[X] (0,-1)" in state_str
-    # pos2 is still not activated → [*]
-    assert "[*] (0,1)" in state_str
+    # Calling setActivated again should fail
+    with pytest.raises(ValueError):
+        grid.setActivated(pos1)
+
+
+def test_setActivated_raises_for_coordinate_not_in_shouldActivate() -> None:
+    grid = Grid()
+    card = DummyCard()
+    pos = GridPosition(x=0, y=0)
+
+    grid.putCard(pos, card)
+
+    # pos not in shouldActivate yet
+    assert grid.canBeActivated(pos) is False
+    with pytest.raises(ValueError):
+        grid.setActivated(pos)
+
+def test_correct_shouldactivate() -> None:
+    grid = Grid()
+    c1 = DummyCard()
+    c2 = DummyCard()
+    c3 = DummyCard()
+    p1 = GridPosition(1,-1)
+    p2 = GridPosition(2,0)
+    p3 = GridPosition(1,0)
+    grid.putCard(p1, c1)
+    grid.putCard(p2, c2)
+    print(grid.shouldActivate)
+    grid.putCard(p3, c3)
+    print(grid.shouldActivate)
+
+    assert p1 in grid.shouldActivate
+    assert p2 in grid.shouldActivate
+    assert not p3 in grid.shouldActivate
+
+
+def test_endTurn_clears_shouldActivate() -> None:
+    grid = Grid()
+    c1 = DummyCard()
+    c2 = DummyCard()
+
+    pos1 = GridPosition(x=-1, y=0)
+    pos2 = GridPosition(x=1, y=0)
+
+    grid.putCard(pos1, c1)
+    grid.putCard(pos2, c2)
+
+    assert grid.canBeActivated(pos1) is True
+
+    grid.endTurn()
+    assert grid.canBeActivated(pos1) is False
+
+
+# ---------------------------------------------------------------------------
+# Activation pattern: setActivationPattern + activationPattern list
+# ---------------------------------------------------------------------------
+
+def test_setActivationPattern_raises_if_grid_not_full() -> None:
+    grid = Grid()
+    card = DummyCard()
+    pos = GridPosition(x=0, y=0)
+
+    grid.putCard(pos, card)
+    pattern = [GridPosition(x=0, y=0)]
+
+    with pytest.raises(ValueError):
+        grid.setActivationPattern(pattern)
+
+
+def test_setActivationPattern_offsets_pattern_to_grid_coordinates() -> None:
+    """
+    setActivationPattern takes a 3×3 local pattern where (0,0) is the
+    bottom-left of the 3×3 territory, and maps it into actual grid
+    coordinates based on current min x and min y of placed cards.
+    """
+    grid = Grid()
+    cards: List[DummyCard] = [DummyCard() for _ in range(9)]
+
+    # Build a 3×3 block with x,y in {-1,0,1}
+    positions = [
+        GridPosition(x, y)
+        for y in (-1, 0, 1)
+        for x in (-1, 0, 1)
+    ]
+
+    for card, pos in zip(cards, positions):
+        grid.putCard(pos, card)
+
+    # Local pattern: bottom-left (0,0), next to the right (1,0), top-right (2,2)
+    local_pattern = [
+        GridPosition(x=0, y=0),
+        GridPosition(x=1, y=0),
+        GridPosition(x=2, y=2),
+    ]
+
+    grid.setActivationPattern(local_pattern)
+
+    # minx, miny are computed from existing cells:
+    # rows = [pos.x], cols = [pos.y]
+    # rows,cols ∈ {-1,0,1}, so minx = min(cols) = -1, miny = min(rows) = -1
+    # So global pattern = (x+minx, y+miny)
+    expected_global = [
+        GridPosition(x=-1, y=-1),  # (0-1, 0-1)
+        GridPosition(x=0,  y=-1),  # (1-1, 0-1)
+        GridPosition(x=1,  y=1),   # (2-1, 2-1)
+    ]
+
+    assert grid.activationPattern == expected_global

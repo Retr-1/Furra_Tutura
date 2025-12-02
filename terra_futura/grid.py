@@ -14,12 +14,18 @@ class Grid(InterfaceGrid):
         self._cells: Dict[GridPosition, InterfaceCard] = {}
 
         # Coordinates already activated in the current turn
-        self._activated_this_turn: Set[GridPosition] = set()
+        self.shouldActivate: Set[GridPosition] = set()
+        self.activationPattern: List[GridPosition] = []
 
 
     def _all_rows_cols_including(self, coordinate: GridPosition) -> tuple[List[int], List[int]]:
         row = [pos.x for pos in self._cells.keys()] + [coordinate.x]
         col = [pos.y for pos in self._cells.keys()] + [coordinate.y]
+        return row, col
+    
+    def _all_rows_cols(self) -> tuple[List[int], List[int]]:
+        row = [pos.x for pos in self._cells.keys()] 
+        col = [pos.y for pos in self._cells.keys()]
         return row, col
 
     def getCard(self, coordinate: GridPosition) -> Optional[InterfaceCard]:
@@ -46,39 +52,37 @@ class Grid(InterfaceGrid):
     def putCard(self, coordinate: GridPosition, card: InterfaceCard) -> None:
         if not self.canPutCard(coordinate):
             raise ValueError("Cannot put card on this position")
+        
+        self.shouldActivate.clear()
+        
+        for placed_pos in self._cells:
+            if placed_pos.x == coordinate.x or placed_pos.y == coordinate.y:
+                self.shouldActivate.add(placed_pos)
 
         self._cells[coordinate] = card
 
     def canBeActivated(self, coordinate: GridPosition) -> bool:
-        """
-        A coordinate can be activated if:
-        - there is a card there
-        - it is part of the current activation pattern
-        - it has not yet been activated in this turn
-        """
-        if coordinate not in self._cells:
-            return False
-
-        if coordinate in self._activated_this_turn:
-            return False
-
-        return True
+        return coordinate in self.shouldActivate
 
     def setActivated(self, coordinate: GridPosition) -> None:
-        """
-        Mark the card at 'coordinate' as activated for this turn.
-        """
         if not self.canBeActivated(coordinate):
             raise ValueError("Cannot activate this card")
         
-        self._activated_this_turn.add(coordinate)
+        self.shouldActivate.remove(coordinate)
 
     def setActivationPattern(self, pattern: List[GridPosition]) -> None:
-        for pos in pattern:
-            self.setActivated(pos)
+        """# pattern pos == 0,0 is in bottom-left grid position"""
+        
+        if len(self._cells) != 9:
+            raise ValueError("The grid is not full")
+
+        rows, cols = self._all_rows_cols()
+        minx, miny = min(cols), min(rows)
+
+        self.activationPattern = [GridPosition(pos.x + minx, pos.y + miny) for pos in pattern]
 
     def endTurn(self) -> None:
-        self._activated_this_turn.clear()
+        self.shouldActivate.clear()
 
     def state(self) -> str:
         if not self._cells:
