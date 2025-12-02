@@ -22,7 +22,7 @@ class Game(TerraFuturaInterface):
                  selectReward: SelectReward, gameObserver: GameObserverInterface) -> None:
         
         
-        if 4 < len(players) < 2:
+        if len(players) < 2 or len(players) > 4:
             raise ValueError("Number of players not in interval 2..4")
         if len(piles) != 2:
             raise ValueError("Wrong number of decks")
@@ -240,7 +240,7 @@ class Game(TerraFuturaInterface):
             if self._onTurn == 0:
                 self._state = GameState.SelectScoringMethod
             else:
-                self._state = GameState.ActivateCard
+                self._state = GameState.SelectActivationPattern
 
         self._notifyObservers()
         return True

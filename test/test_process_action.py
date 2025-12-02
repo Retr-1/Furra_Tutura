@@ -8,10 +8,10 @@ from terra_futura.interfaces import InterfaceGrid, InterfaceCard
 from typing import Optional, List
 
 class DummyGrid(InterfaceGrid):
-    def __init__(self, mapping) -> None:
+    def __init__(self, mapping: dict[GridPosition, InterfaceCard]) -> None:
         self.mapping = mapping
 
-    def getCard(self, position) -> Optional[InterfaceCard]:
+    def getCard(self, position: GridPosition) -> Optional[InterfaceCard]:
         return self.mapping.get(position)
     
     def canPutCard(self, coordinate: GridPosition)-> bool:
